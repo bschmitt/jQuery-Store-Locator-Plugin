@@ -55,6 +55,7 @@ $.fn.storeLocator = function(options) {
       'callbackModalClose': null,
       'jsonpCallback': null,
       //Language options
+	  'geocodeErrorContainer': null,
       'geocodeErrorAlert': 'Geocode was not successful for the following reason: ',
       'addressErrorAlert' : 'Unable to find address',
       'autoGeocodeErrorAlert': 'Automatic location detection failed. Please fill in your address or zip code.',
@@ -124,6 +125,10 @@ $.fn.storeLocator = function(options) {
     normalset = [];
     markers = [];
     $(document).off('click.'+prefix, '#' + settings.listDiv + ' li');
+	// reset error container
+	if(settings.errorMessageContainer) {
+		$('#'+settings.errorMessageContainer).text('');
+	}
   }
   
   //Add modal window divs if set
@@ -170,7 +175,7 @@ $.fn.storeLocator = function(options) {
             mapping(settings.defaultLat, settings.defaultLng, originAddress);
           } else {
             //Unable to geocode
-            alert(settings.addressErrorAlert);
+            alertError(settings.addressErrorAlert);
           }
         });
     }
@@ -200,7 +205,7 @@ $.fn.storeLocator = function(options) {
             result.longitude = results[0].geometry.location.lng();
             callbackFunction(result);
           } else {
-            alert(settings.geocodeErrorAlert + status);
+            alertError(settings.geocodeErrorAlert + status);
             callbackFunction(null);
           }
         });
@@ -219,7 +224,7 @@ $.fn.storeLocator = function(options) {
                 callbackFunction(result);
             }
           } else {
-            alert(settings.geocodeErrorAlert + status);
+            alertError(settings.geocodeErrorAlert + status);
             callbackFunction(null);
           }
         });
@@ -242,14 +247,14 @@ $.fn.storeLocator = function(options) {
           mapping(position.coords.latitude, position.coords.longitude, originAddress);
         } else {
           //Unable to geocode
-          alert(settings.addressErrorAlert);
+          alertError(settings.addressErrorAlert);
         }
       });
   }
 
   function autoGeocode_error(error){
     //If automatic detection doesn't work show an error
-    alert(settings.autoGeocodeErrorAlert);
+    alertError(settings.autoGeocodeErrorAlert);
   }
 
   //Set up the normal mapping
@@ -270,10 +275,19 @@ $.fn.storeLocator = function(options) {
           mapping(olat, olng, userinput, distance);
         } else {
           //Unable to geocode
-          alert(settings.addressErrorAlert);
+          alertError(settings.addressErrorAlert);
         }
       });
     }
+  }
+ 
+  // alert error or place message into a container
+  function alertError(message) {
+	if(settings.errorMessageContainer) {
+		$('#'+settings.errorMessageContainer).text(message);
+	} else {
+		alert(message);
+	}  
   }
 
   //Process form input
@@ -520,13 +534,13 @@ $.fn.storeLocator = function(options) {
           //Check the closest marker
           if(settings.maxDistance === true && firstRun !== true && maxDistance){
             if(locationset[0] === undefined  || locationset[0]['distance'] > maxDistance){
-              alert(settings.distanceErrorAlert + maxDistance + " " + distUnit);
-              return;
+				alertError(settings.distanceErrorAlert + maxDistance + " " + distUnit);
+			 	return;
             }
           }
           else{
             if(settings.distanceAlert !== -1 && locationset[0]['distance'] > settings.distanceAlert){
-              alert(settings.distanceErrorAlert + settings.distanceAlert + " " + distUnit);
+              alertError(settings.distanceErrorAlert + settings.distanceAlert + " " + distUnit);
             }
           }
           
